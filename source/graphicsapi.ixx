@@ -7,6 +7,7 @@ module;
 export module graphicsapi;
 
 import common;
+import comvars;
 import settings;
 
 // The graphics API, MAIN.GraphicsAPI: 0 DirectX 9, 1 Vulkan (DXVK as vulkan.dll next to the exe), 2 DirectX 12 (Fusion
@@ -33,6 +34,10 @@ export void InstallGraphicsApi()
     static std::once_flag once;
     std::call_once(once, []()
     {
+        // Remix's bridge owns d3d9.dll and Fusion Fix stays on DirectX 9 with it: nothing to install, no crash guard's
+        // markers and no DXVK probe while the plugin loads.
+        if (isUsingRtxRemix())
+            return;
         auto& plugin = SettingsPlugin();
         FusionFixGraphicsApi::Options options;
         // The player's choice as stored: State() tells why another API runs

@@ -390,6 +390,11 @@ public:
 
         FusionFix::onInitEvent() += []()
         {
+            if (isUsingRtxRemix())
+            {
+                return;
+            }
+
             SettingsReader reader;
             fOverrideTreeAlpha = std::clamp(reader.ReadFloat("MISC", "OverrideTreeAlpha", 0.0f), 0.0f, 255.0f);
             fSHADOWFILTERSHARPShadowSoftness = reader.ReadFloat("SHADOWFILTERSHARP", "ShadowSoftness", 1.5f);

@@ -2501,8 +2501,46 @@ public:
         // sets this back (the crash guard of graphics_api.h).
         SetAvailability("PREF_GRAPHICSAPI", [](int32_t value) -> bool
         {
+            // While the compatibility mod is there the option takes only DirectX 9 (pinned below): asking whether Vulkan
+            // can start would create a device through the d3d9.dll Remix owns, with this plugin still loading.
+            if (isUsingRtxRemix())
+                return value == 0;
             return FusionFixGraphicsApi::Available(static_cast<FusionFixGraphicsApi::Api>(std::clamp(value, 0, 2)));
         });
+
+        // RTX Remix renders lighting, shadows, post-FX and anti-aliasing itself. While its compatibility mod is loaded
+        // these options take only their off value: the menu skips the rest, the value in effect falls back to it, and
+        // the cfg keeps the player's choice for when Fusion Fix runs without Remix.
+        if (isUsingRtxRemix())
+        {
+            static constexpr std::pair<const char*, int32_t> remixValues[] = {
+                { "PREF_GRAPHICSAPI",         0 },  // DirectX 9, the API Remix hooks
+                { "PREF_DEFINITION",          0 },
+                { "PREF_MOTIONBLUR",          0 },
+                { "PREF_ANTIALIASING",        0 },  // Remix drives anti-aliasing and upscaling
+                { "PREF_BLOOM",               0 },
+                { "PREF_CONSOLE_GAMMA",       0 },
+                { "PREF_AUTOEXPOSURE",        0 },
+                { "PREF_TIMECYC",             0 },  // MO_DEF, no Fusion Fix timecycle filter
+                { "PREF_TCYC_DOF",            0 },
+                { "PREF_TONEMAPPING",         0 },
+                { "PREF_UNCLAMPLIGHTING",     0 },
+                { "PREF_DISTANTLIGHTS",       0 },  // PC
+                { "PREF_TREE_LIGHTING",       0 },  // PC
+                { "PREF_TREEALPHA",           0 },  // PC
+                { "PREF_SUNSHAFTS",           0 },
+                { "PREF_SAO",                 0 },
+                { "PREF_VOLUMETRICFOG",       0 },
+                { "PREF_SHADOWFILTER",        0 },  // Sharp
+                { "PREF_STREETLIGHTSHADOWS",  0 },
+                { "PREF_HEADLIGHTSHADOWS",    0 },
+                { "PREF_VEHICLENIGHTSHADOWS", 0 },
+            };
+
+            for (auto& [name, value] : remixValues)
+                SetAvailability(name, [value](int32_t available) { return available == value; });
+        }
+
         InitializeMenuAPI();
         RegisterMenuRows();
         SnapshotRestartValues(ownPlugin);

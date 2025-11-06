@@ -1535,6 +1535,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            if (isUsingRtxRemix())
+            {
+                return;
+            }
+
             // Make the night shadow options adjust the night shadow resolution (Half the cascaded shadow resolution otherwise)
             {
                 auto pattern = find_pattern("8B 0D ? ? ? ? 85 C9 7E 1B", "8B 0D ? ? ? ? 33 C0 85 C9 7E 1B");

@@ -3068,6 +3068,32 @@ export namespace UAL
     bool (WINAPI* AddVirtualFileForOverloadW)(const wchar_t* virtualPath, const uint8_t* data, size_t size, int priority) = nullptr;
 }
 
+export enum RtxRemixState
+{
+    RTX_UNKNOWN = 0,
+    RTX_NOT_PRESENT = 1,
+    RTX_PRESENT = 2
+};
+export RtxRemixState rtxRemixState = RTX_UNKNOWN;
+
+export bool isUsingRtxRemix()
+{
+    if (rtxRemixState == RTX_UNKNOWN)
+    {
+        // Which .asi the loader starts first decides nothing here: the file next to the exe counts as much as the module,
+        // Fusion Fix's own init runs before the compatibility mod is necessarily loaded.
+        std::error_code ec;
+        auto mod = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "a_gta4-rtx.asi";
+        rtxRemixState = GetModuleHandleA("a_gta4-rtx.asi") != nullptr || std::filesystem::exists(mod, ec) ? RTX_PRESENT : RTX_NOT_PRESENT;
+        if (isUsingRtxRemix())
+        {
+            printf("\n[FusionFix] Detected RTX Remix Compatibility Mod.\n\n");
+        }
+    }
+
+    return rtxRemixState == RTX_PRESENT;
+}
+
 class Common
 {
 public:

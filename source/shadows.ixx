@@ -88,6 +88,11 @@ public:
     {
         FusionFix::onInitEventAsync() += []()
         {
+            if (isUsingRtxRemix())
+            {
+                return;
+            }
+
             SettingsReader reader;
 
             // [SHADOWS]
