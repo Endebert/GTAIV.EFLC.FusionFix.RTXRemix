@@ -117,6 +117,11 @@ auto SeasonalManager::Init() -> void
 {
     //if (!GetD3DX9_43DLL()) return;
 
+    if (isUsingRtxRemix())
+    {
+        return;
+    }
+
     if (initialized)
         return;
 
@@ -170,6 +175,11 @@ class Initializer
 public:
     Initializer()
     {
+        if (isUsingRtxRemix())
+        {
+            return;
+        }
+
         FusionFix::onInitEventAsync() += []()
         {
             SeasonalManager::Init();
