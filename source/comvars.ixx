@@ -793,7 +793,8 @@ export namespace EntityLights
             preRender = hook::pattern("83 EC 08 55 56 8B F1 0F BF 46 2E 8B 2C 85 ? ? ? ? 8B 46 28 A8 10");
         auto building = hook::pattern("6A 70 68 ? ? ? ? 68 00 7D 00 00 8B C8 E8 ? ? ? ? A3");
         auto animatedBuilding = hook::pattern("68 10 01 00 00 68 ? ? ? ? 68 F4 01 00 00 8B C8 E8 ? ? ? ? A3");
-        auto dummy = hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3");
+        // Match the Dummy Object initializer without its capacity, which RTX Remix can change.
+        auto dummy = hook::pattern("68 80 00 00 00 68 ? ? ? ? 68 ? ? ? ? 8B C8 E8 ? ? ? ? A3 ? ? ? ? C3 C7 05 ? ? ? ? 00 00 00 00 C3");
         auto pre = preRender.get_first<uint8_t>();
         auto effectsCall = legacy ? 0x5B : 0x56;
         auto poolCall = legacy ? 0xA6 : 0xA4;
@@ -803,7 +804,9 @@ export namespace EntityLights
         pModelInfos = *(uintptr_t**)(pre + (legacy ? 14 : 16));
         pBuildingPool = *building.get_first<CPool<void*>**>(20);
         pAnimatedBuildingPool = *animatedBuilding.get_first<CPool<void*>**>(23);
-        pDummyPool = *dummy.get_first<CPool<void*>**>(13);
+        pDummyPool = dummy.empty()
+            ? *hook::pattern("68 B0 36 00 00 8B C8 E8 ? ? ? ? A3").get_first<CPool<void*>**>(13)
+            : *dummy.get_first<CPool<void*>**>(23);
         CEntity__ProcessLightsForEntity = (decltype(CEntity__ProcessLightsForEntity))injector::GetBranchDestination(pre + lightsCall).as_int();
         CBaseModelInfo__GetNum2dEffects = (decltype(CBaseModelInfo__GetNum2dEffects))injector::GetBranchDestination(pre + effectsCall).as_int();
         CPool__GetAt = (decltype(CPool__GetAt))injector::GetBranchDestination(pre + poolCall).as_int();
